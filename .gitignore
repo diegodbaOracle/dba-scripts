@@ -1,0 +1,12 @@
+*.log
+*.trc
+*.trm
+*.aud
+*.dmp
+*.dump
+*.tar
+*.gz
+*.zip
+
+backup/
+stage/
