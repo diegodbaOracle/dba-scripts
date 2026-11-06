@@ -1,0 +1,32 @@
+
+-- Importando dados do schema SOE na origem utilizando DBLINK
+
+-- Criando usuário na origem (PDB1)
+
+CREATE USER c##clone_imp IDENTIFIED BY dba_clone_imp CONTAINER=ALL;
+GRANT CREATE SESSION, CREATE PLUGGABLE DATABASE TO c##clone_imp CONTAINER=ALL;
+GRANT DATAPUMP_EXP_FULL_DATABASE TO c##clone_imp;
+
+-- Criando dblink no destino (PDB2)
+
+CREATE DATABASE LINK DB_IMP_TESTE
+CONNECT TO c##clone_imp IDENTIFIED BY dba_clone_imp
+USING '(DESCRIPTION=
+          (ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1539))
+          (CONNECT_DATA=
+            (SERVER=DEDICATED)
+            (SERVICE_NAME=PDB1)
+          )
+       )';
+	   
+
+-- drop database link DB_IMP_TESTE;
+
+					
+-- Script de imdp para ser executado no destino (PDB2)
+
+-- impdp \"/ as sysdba\" schemas=APPSPI directory=TMPDIR cluster=N parallel=4 network_link=DB_IMP_TESTE remap_schema=APPSPI:APPSPI_NOVO logfile=impdp_appspi_schema.log flashback_time=SYSTIMESTAMP
+
+impdp \"/ as sysdba\" schemas=SOE  cluster=N network_link=DB_IMP_TESTE logfile=impdp_soe_schema.log flashback_time=SYSTIMESTAMP
+
+-- Sem necessidade de utilizar directory
